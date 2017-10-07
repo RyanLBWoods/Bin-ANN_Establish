@@ -1,3 +1,5 @@
+import java.io.File;
+
 import org.encog.ConsoleStatusReportable;
 import org.encog.engine.network.activation.ActivationSigmoid;
 import org.encog.ml.data.MLDataSet;
@@ -7,6 +9,7 @@ import org.encog.neural.networks.layers.BasicLayer;
 import org.encog.neural.networks.training.propagation.back.Backpropagation;
 import org.encog.neural.pattern.FeedForwardPattern;
 import org.encog.neural.prune.PruneIncremental;
+import org.encog.persist.EncogDirectoryPersistence;
 
 public class NeuralNetwork {
     
@@ -42,14 +45,16 @@ public class NeuralNetwork {
         }
         
         trainNeuralNet();
-
+        
+        System.out.println("Saving network");
+        EncogDirectoryPersistence.saveObject(new File("my_NN.eg"), network);
     }
     
     private static void trainNeuralNet(){
         MLDataSet trainingSet = new BasicMLDataSet(INPUT, OUTPUT);
         
         int input_units = 7;
-        int hidden_units = 5;
+        int hidden_units = 14;
         int output_units = 5;
         
         network.addLayer(new BasicLayer(null, false, input_units));
@@ -63,12 +68,13 @@ public class NeuralNetwork {
         network.getStructure().finalizeStructure();
         network.reset();
         
+        int epoch = 1;
         Backpropagation train = new Backpropagation(network, trainingSet, 0.03, 0);        
         
         do {
             train.iteration();
-            System.out.println(/*"Epoch #" + epoch + " Error: " + */train.getError());
-//            epoch++;
+            System.out.println("Epoch #" + epoch + " Error: " + train.getError());
+            epoch++;
             
         } while(train.getError() > 0.01);
         train.finishTraining();
@@ -83,12 +89,11 @@ public class NeuralNetwork {
         
         prune.addHiddenLayer(5, 14);
         prune.process();
-        BasicNetwork network = prune.getBestNetwork();
+        network = prune.getBestNetwork();
         System.out.println("Neural Network created: " + network.getLayerNeuronCount(0) + "-" + network.getLayerNeuronCount(1) + "-" + network.getLayerNeuronCount(2));
         
         train = new Backpropagation(network, trainingSet, 0.03, 0);        
 
-        int epoch = 1;
         do {
             train.iteration();
             System.out.println(/*"Epoch #" + epoch + " Error: " + */train.getError());
