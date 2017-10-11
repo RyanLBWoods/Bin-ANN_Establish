@@ -1,14 +1,11 @@
 import java.io.File;
 
-import org.encog.ConsoleStatusReportable;
 import org.encog.engine.network.activation.ActivationSigmoid;
 import org.encog.ml.data.MLDataSet;
 import org.encog.ml.data.basic.BasicMLDataSet;
 import org.encog.neural.networks.BasicNetwork;
 import org.encog.neural.networks.layers.BasicLayer;
 import org.encog.neural.networks.training.propagation.back.Backpropagation;
-import org.encog.neural.pattern.FeedForwardPattern;
-import org.encog.neural.prune.PruneIncremental;
 import org.encog.persist.EncogDirectoryPersistence;
 
 public class NeuralNetwork {
@@ -48,23 +45,22 @@ public class NeuralNetwork {
         
         System.out.println("Saving network");
         EncogDirectoryPersistence.saveObject(new File("my_NN.eg"), network);
+        
     }
     
     private static void trainNeuralNet(){
         MLDataSet trainingSet = new BasicMLDataSet(INPUT, OUTPUT);
         
         int input_units = 7;
-        int hidden_units = 14;
+        int hidden_units = 5;
         int output_units = 5;
         
         network.addLayer(new BasicLayer(null, false, input_units));
         
         network.addLayer(new BasicLayer(new ActivationSigmoid(), true, hidden_units));
-        
-//        network.addLayer(new BasicLayer(new ActivationSigmoid(), true, hidden_units));
           
         network.addLayer(new BasicLayer(new ActivationSigmoid(), false, output_units));
-          
+
         network.getStructure().finalizeStructure();
         network.reset();
         
@@ -74,29 +70,6 @@ public class NeuralNetwork {
         do {
             train.iteration();
             System.out.println("Epoch #" + epoch + " Error: " + train.getError());
-            epoch++;
-            
-        } while(train.getError() > 0.01);
-        train.finishTraining();
-        
-        FeedForwardPattern net_test = new FeedForwardPattern();
-        
-        net_test.setInputNeurons(7);
-        net_test.setOutputNeurons(5);
-        net_test.setActivationFunction(new ActivationSigmoid());
-        
-        PruneIncremental prune = new PruneIncremental(trainingSet, net_test, 1000, 1, 10, new ConsoleStatusReportable());
-        
-        prune.addHiddenLayer(5, 14);
-        prune.process();
-        network = prune.getBestNetwork();
-        System.out.println("Neural Network created: " + network.getLayerNeuronCount(0) + "-" + network.getLayerNeuronCount(1) + "-" + network.getLayerNeuronCount(2));
-        
-        train = new Backpropagation(network, trainingSet, 0.03, 0);        
-
-        do {
-            train.iteration();
-            System.out.println(/*"Epoch #" + epoch + " Error: " + */train.getError());
             epoch++;
             
         } while(train.getError() > 0.01);
